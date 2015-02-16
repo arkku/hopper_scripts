@@ -13,7 +13,12 @@ seg = doc.getCurrentSegment()
 adr = doc.getCurrentAddress()
 proc = seg.getProcedureAtAddress(adr)
 entry = proc.getEntryPoint() if proc != None else Segment.BAD_ADDRESS
-col = doc.getCurrentColumn() - 17 # magic number to skip the address column
+col = doc.getCurrentColumn()
+# Hope that the cursor is in the hex field after the address:
+if doc.is64Bits():
+    col -= 17
+else:
+    col -= 9
 col = (col / 2) if col >= 0 else 0
 
 hexStr = Document.ask("Hex to write at current cursor position:")
