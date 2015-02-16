@@ -12,7 +12,7 @@ entry = proc.getEntryPoint() if proc != None else Segment.BAD_ADDRESS
 ins = seg.getInstructionAtAddress(adr)
 arch = ins.getArchitecture()
 
-hexStr = Document.ask("Enter hexadecimal instruction:")
+hexStr = Document.ask("Replacement instruction as hex:")
 if hexStr != None:
     endProc = adr
     if seg.getTypeAtAddress(endProc) == Segment.TYPE_CODE:
