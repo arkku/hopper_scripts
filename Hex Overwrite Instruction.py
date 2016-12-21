@@ -16,19 +16,21 @@ hexStr = Document.ask("Replacement instruction as hex:")
 if hexStr != None:
     endProc = adr
     if seg.getTypeAtAddress(endProc) == Segment.TYPE_CODE:
+        # Find the end of the procedure
         endProc += 1
         while seg.getTypeAtAddress(endProc) == Segment.TYPE_NEXT:
             endProc += 1
+
     pos = adr
     for i in range(0, len(hexStr), 2):
         byte = int(hexStr[i:i+2], 16) & 255
-        #print("Writing 0x%02X at address %x" % (byte, pos))
         seg.writeByte(pos, byte)
         pos += 1
     if endProc > adr:
         seg.markAsCode(adr)
         if arch in [1, 2]:
             while pos < endProc:
+                # NOP
                 seg.writeByte(pos, 0x90)
                 seg.markAsCode(pos)
                 pos += 1

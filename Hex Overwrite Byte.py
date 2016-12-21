@@ -6,6 +6,9 @@
 # Note that this will mess things up greatly if you place the cursor
 # somewhere other than the leftmost hex dump column.
 #
+# NOTE: This script does not currently (2016-12-21) work in Hopper v4,
+# since `getCurrentColumn()` is missing.
+#
 # By Kimmo Kulovesi <http://arkku.com/>, 2015
 
 doc = Document.getCurrentDocument()
