@@ -4,7 +4,7 @@
 # remains unchanged - to avoid inserting the prologue, run this at the
 # very beginning of the function so that the epilogue is overwritten.
 #
-# By Kimmo Kulovesi <http://arkku.com/>, 2015
+# By Kimmo Kulovesi <https://arkku.com/>, 2015, 2019
 
 doc = Document.getCurrentDocument()
 seg = doc.getCurrentSegment()
@@ -14,7 +14,7 @@ entry = proc.getEntryPoint() if proc != None else Segment.BAD_ADDRESS
 ins = seg.getInstructionAtAddress(adr)
 arch = ins.getArchitecture()
 
-if arch in [1, 2]:
+if arch in [ Instruction.ARCHITECTURE_i386, Instruction.ARCHITECTURE_X86_64 ]:
     suffix = ":" if arch == 2 else " (L suffix forces 64-bit):"
     s = Document.ask("Integer value to return"+suffix)
     if s != None:
@@ -26,7 +26,7 @@ if arch in [1, 2]:
         endProc = adr + 1
         while seg.getTypeAtAddress(endProc) == Segment.TYPE_NEXT:
             endProc += 1
-        if (arch == 2 or valueSize < 8) and (i == 1 or i == 0):
+        if (arch == Instruction.ARCHITECTURE_X86_64 or valueSize < 8) and (i == 1 or i == 0):
             # xor eax, eax -> 0
             seg.writeByte(adr, 0x31)
             seg.writeByte(adr + 1, 0xC0)
@@ -100,4 +100,4 @@ if arch in [1, 2]:
         if entry != Segment.BAD_ADDRESS:
             seg.markAsProcedure(entry)
 else:
-    print("Unsupported architecture!")
+    doc.log("Unsupported architecture!")
