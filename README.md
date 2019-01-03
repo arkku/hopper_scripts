@@ -10,5 +10,5 @@ Install by placing them in: `~/Library/Application Support/Hopper/Scripts`
 
 Distribute freely, use at your own risk only.
 
-~ [Kimmo Kulovesi](http://arkku.com/)
+~ [Kimmo Kulovesi](https://arkku.com/)
 

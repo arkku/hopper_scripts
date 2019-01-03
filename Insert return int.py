@@ -20,7 +20,7 @@ ins = seg.getInstructionAtAddress(adr)
 arch = ins.getArchitecture()
 
 if arch in [ Instruction.ARCHITECTURE_i386, Instruction.ARCHITECTURE_X86_64 ]:
-    suffix = ":" if arch == 2 else " (L suffix forces 64-bit):"
+    suffix = ":" if arch == Instruction.ARCHITECTURE_X86_64 else " (L suffix forces 64-bit):"
     s = Document.ask("Integer value to return"+suffix)
     if s != None:
         valueSize = 4
