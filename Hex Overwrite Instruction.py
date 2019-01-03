@@ -2,7 +2,7 @@
 # another one given as hex. On x86/x64 architectures also pads the
 # instruction with NOPs as necessary.
 #
-# By Kimmo Kulovesi <https://arkku.com/>, 2015, 2019
+# By Kimmo Kulovesi <https://arkku.com/>, 2015-2019
 
 doc = Document.getCurrentDocument()
 seg = doc.getCurrentSegment()
@@ -25,13 +25,14 @@ if hexStr != None:
     pos = adr
     for i in range(0, len(hexStr), 2):
         byte = int(hexStr[i:i+2], 16) & 255
-        doc.log("Writing 0x%02X at address %x" % (byte, pos))
+        #doc.log("Writing 0x%02X at address %x" % (byte, pos))
         seg.writeByte(pos, byte)
         pos += 1
     if endProc > adr:
         seg.markAsCode(adr)
         if arch in [ Instruction.ARCHITECTURE_i386, Instruction.ARCHITECTURE_X86_64 ]:
             while pos < endProc:
+                # NOP
                 seg.writeByte(pos, 0x90)
                 seg.markAsCode(pos)
                 pos += 1

@@ -1,10 +1,15 @@
 # Hopper Disassembler script to insert x86/x64 instructions to return
 # an integer from the current procedure. Should handle both 64-bit and
-# 32-bit values. Automatically inserts function prologue if its epilogue
-# remains unchanged - to avoid inserting the prologue, run this at the
-# very beginning of the function so that the epilogue is overwritten.
+# 32-bit values. Automatically inserts function epilogue if its prologue
+# remains unchanged - to avoid inserting the epilogue, run this at the
+# very beginning of the function so that the prologue is overwritten.
 #
-# By Kimmo Kulovesi <https://arkku.com/>, 2015, 2019
+# Currently this only supports the basic `push rbp`, `mov rbp, rsp`
+# prologue - if you need to restore other registers, or if `rbp` isn't
+# used to store `rsp`, you need to handle that manually. (However,
+# if you just return immediately, this is not a problem.)
+#
+# By Kimmo Kulovesi <https://arkku.com/>, 2015-2019
 
 doc = Document.getCurrentDocument()
 seg = doc.getCurrentSegment()
@@ -20,13 +25,17 @@ if arch in [ Instruction.ARCHITECTURE_i386, Instruction.ARCHITECTURE_X86_64 ]:
     if s != None:
         valueSize = 4
         if s[-1] == 'L' or s[-1] == 'l':
+            # Force 64-bit with L suffix
             valueSize = 8
             s = s[:-1]
         i = int(s, 0)
         endProc = adr + 1
+
+        # Find the end of the procedure
         while seg.getTypeAtAddress(endProc) == Segment.TYPE_NEXT:
             endProc += 1
         if (arch == Instruction.ARCHITECTURE_X86_64 or valueSize < 8) and (i == 1 or i == 0):
+            # Values 0 and 1 are handled as special cases
             # xor eax, eax -> 0
             seg.writeByte(adr, 0x31)
             seg.writeByte(adr + 1, 0xC0)
@@ -63,12 +72,16 @@ if arch in [ Instruction.ARCHITECTURE_i386, Instruction.ARCHITECTURE_X86_64 ]:
                     i >>= 8
                 seg.markAsCode(adr)
                 adr += offset + valueChunk
+
         if entry != Segment.BAD_ADDRESS:
+            # Try to identify function prologue
             if seg.readByte(entry) == 0x55:
+                # P: push rbp/ebp
                 if seg.readByte(entry + 1) == 0x48 and \
                         seg.readByte(entry + 2) == 0x89 and \
                         seg.readByte(entry + 3) == 0xE5:
-                       # mov rsp, rbp
+                        # P: mov rbp, rsp
+                        # E: mov rsp, rbp:
                        seg.writeByte(adr, 0x48)
                        seg.writeByte(adr + 1, 0x89)
                        seg.writeByte(adr + 2, 0xEC)
@@ -76,27 +89,34 @@ if arch in [ Instruction.ARCHITECTURE_i386, Instruction.ARCHITECTURE_X86_64 ]:
                        adr += 3
                 elif seg.readByte(entry + 1) == 0x89 and \
                         seg.readByte(entry + 2) == 0xE5:
-                       # mov esp, ebp
+                        # P: mov ebp, esp
+                        # E: mov esp, ebp:
                        seg.writeByte(adr, 0x89)
                        seg.writeByte(adr + 1, 0xEC)
                        seg.markAsCode(adr)
                        adr += 2
-                # pop rbp/ebp
+                # E: pop rbp/ebp:
                 seg.writeByte(adr, 0x5D)
                 seg.markAsCode(adr)
                 adr += 1
             elif seg.readByte(entry) == 0xC8:
-                # leave
+                # P: enter
+                # E: leave:
                 seq.writeByte(adr, 0xC9)
                 seg.markAsCode(adr)
                 adr += 1
+
+        # ret:
         seg.writeByte(adr, 0xC3)
         seg.markAsCode(adr)
         adr += 1
+
         while adr < endProc:
+            # NOP the old code
             seg.writeByte(adr, 0x90)
             seg.markAsCode(adr)
             adr += 1
+
         if entry != Segment.BAD_ADDRESS:
             seg.markAsProcedure(entry)
 else:
